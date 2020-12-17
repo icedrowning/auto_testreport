@@ -1,0 +1,39 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+import os
+import requests
+import json
+import pymysql.cursors
+
+
+def test_case001():
+    r=requests.get('http://127.0.0.1:5000/')
+    #httpcode
+    assert r.status_code == 200
+
+def test_case002():
+    r=requests.get('http://127.0.0.1:5000/')
+    #预期相应时间0.2s之内
+    assert r.elapsed.total_seconds() < 0.1
+
+def test_case003():
+    r = requests.get('http://127.0.0.1:5000/api_response/')
+    #响应体里面应该有品牌应该是CNKFC
+    assert json.loads(r.text)['data']['brand'] == 'CNKFC'
+
+def test_case004():
+    connection = pymysql.connect(host='localhost',
+                                 user='root',
+                                 password='12345678',
+                                 db='jiaqiong',
+                                 charset='utf8mb4',
+                                 cursorclass=pymysql.cursors.DictCursor)
+    try:
+        with connection.cursor() as cursor:
+            connection.ping(reconnect=True)
+            cursor.execute("show databases;")
+            result = cursor.fetchall()
+    finally:
+        connection.close()
+    #预期有jiaqiong这个数据库
+    assert 'jiaqiong' in str(result)
